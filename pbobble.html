@@ -106,6 +106,41 @@ let isMute = false;
 let musicStarted = false;
 let nextAnim = null;
 
+//verde
+let DRAGON_COLORS_GREEN = {
+	crestFill:'#ff8800', crestStroke:'#cc5500',//spine sulla schiena+unghie
+	greenFill:'#27ae60', greenStroke:'#1a7a3a',//ali+coda
+	bodyLight:'#74eaaa', bodyMed:'#27ae60', bodyDark:'#0e5c28',//corpo
+	handFill: '#1e8449', //zampe verde piu scuro
+	irisFill: '#22aa66', //iride
+	};
+//rosso
+let DRAGON_COLORS_RED = {
+	crestFill:'#ff8800', crestStroke:'#cc5500',//spine sulla schiena+unghie
+	bodyLight: '#ff6f61', bodyMed: '#c62828', bodyDark: '#4a0000',
+	greenFill: '#d32f2f', greenStroke: '#8e0000',
+	handFill: '#a60808', //zampe verde piu scuro
+	irisFill: '#aa2266', //iride
+};
+//blu
+let DRAGON_COLORS_BLUE = {
+	crestFill:'#ff8800', crestStroke:'#cc5500', // creste arancioni → contrasto top col blu
+	greenFill:'#3498db',  greenStroke:'#1f618d', // ali + coda → blu medio
+	bodyLight:'#a7d8ff',  bodyMed:'#3498db',  bodyDark:'#0b3c5d', // corpo → azzurro → blu profondo
+	handFill: '#1f618d', // zampe coerenti con ali
+	irisFill: '#85c1e9', // iride più chiara, effetto “magico”
+};
+//grigione
+let DRAGON_COLORS_GRAY = {
+	crestFill:'#ff3b30',  crestStroke:'#8b0000', // creste rosso fuoco
+	greenFill:'#2c2c2c',  greenStroke:'#0f0f0f', // ali + coda → grigio scurissimo
+	bodyLight:'#5a5a5a',  bodyMed:'#2b2b2b',  bodyDark:'#0a0a0a', // corpo → quasi nero con volume
+	handFill: '#1a1a1a', // zampe ancora più scure
+	irisFill: '#ff1a1a', // occhi rossi glow
+};
+
+let DRAGON_COLORS = null;
+
 function stopMusic() {
 	if (!musicStarted) return;
 	const music = document.getElementById("bgMusic");
@@ -377,6 +412,12 @@ function initGrid() {
 	nxt3 = pickColor();
 	nxt4 = pickColor();
 	drawNext();
+	
+	let col = Date.now() % 4;
+	DRAGON_COLORS = col === 0 ? DRAGON_COLORS_GREEN : 
+					col === 1 ? DRAGON_COLORS_BLUE :
+					col === 2 ? DRAGON_COLORS_RED : 
+					DRAGON_COLORS_GRAY;
 }
 
 //RESET
@@ -491,13 +532,12 @@ function drawDragon(c, now) {
   const tsw = Math.sin(now / 370) * 3;
   const blink = (now % 3400) < 95;
   c.save();
-  c.translate(-120, 10);
+  c.translate(-120, 8);
   c.lineCap = 'round'; c.lineJoin = 'round';
 
   const HX = DX;
   const HY = DY - 46;
-
-
+  
   // tail crests
 [
 	[DX-57, DY-16+tsw, DX-45, DY-14+tsw, DX-46, DY-30+tsw], //triangolo punta coda
@@ -506,58 +546,81 @@ function drawDragon(c, now) {
 	[DX-45, DY+20+tsw, DX-33, DY+20+tsw, DX-34, DY+8+tsw], //triangolo medio
 	[DX-30, DY+20+tsw, DX-12, DY+20+tsw, DX-19, DY+8+tsw], //triangolo chiappe
  ].forEach(([x1,y1,x2,y2,x3,y3])=>{
-  c.fillStyle='#ff8800';
-  c.beginPath(); c.moveTo(x1,y1); c.lineTo(x2,y2); c.lineTo(x3,y3); c.closePath(); c.fill();
-  c.strokeStyle='#cc5500'; c.lineWidth=1;
-  c.beginPath(); c.moveTo(x1,y1); c.lineTo(x2,y2); c.lineTo(x3,y3); c.closePath(); c.stroke();
+  c.fillStyle=DRAGON_COLORS.crestFill;
+  c.strokeStyle=DRAGON_COLORS.crestStroke;
+  c.lineWidth=1;
+  c.beginPath(); 
+  c.moveTo(x1,y1); 
+  c.lineTo(x2,y2); 
+  c.lineTo(x3,y3); 
+  c.closePath(); 
+  c.fill();
+  c.stroke();
 });
   
   // ── TAIL 
-  c.strokeStyle = '#1a7a3a'; c.lineWidth = 10;
+  c.strokeStyle = DRAGON_COLORS.greenStroke; 
+  c.lineWidth = 10;
   c.beginPath();
   c.moveTo(DX-14, DY+16);
   c.bezierCurveTo(DX-44, DY+34+tsw, DX-64, DY+12+tsw, DX-52, DY-14+tsw);
   c.stroke();
-  c.strokeStyle = '#27ae60'; c.lineWidth = 7;
+  c.strokeStyle = DRAGON_COLORS.greenFill;
+  c.lineWidth = 7;
   c.beginPath();
   c.moveTo(DX-14, DY+16);
   c.bezierCurveTo(DX-44, DY+34+tsw, DX-64, DY+12+tsw, DX-52, DY-14+tsw);
   c.stroke();
 
-	// ── BACK CRESTS == WINGS ──────────────────────────────────────────────
+	// ── BACK CRESTS == WINGS
 const crests = [
   [DX-24,  DY-10,  DX-28,  DY-68, DX-12,  DY-22],  // sinistra
   [DX+24,  DY-10,  DX+28,  DY-68, DX+12,  DY-22],  // destra
 ];
 crests.forEach(([x1,y1,x2,y2,x3,y3])=>{
-  c.fillStyle='#1a7a3a';
-  c.beginPath(); c.moveTo(x1,y1); c.lineTo(x2,y2); c.lineTo(x3,y3); c.closePath(); c.fill();
-  c.strokeStyle='#27ae60'; c.lineWidth=1;
-  c.beginPath(); c.moveTo(x1,y1); c.lineTo(x2,y2); c.lineTo(x3,y3); c.closePath(); c.stroke();
+  c.fillStyle=DRAGON_COLORS.greenFill;
+  c.strokeStyle=DRAGON_COLORS.greenStroke; 
+  c.lineWidth=1;
+  c.beginPath(); 
+  c.moveTo(x1,y1); 
+  c.lineTo(x2,y2); 
+  c.lineTo(x3,y3); 
+  c.closePath(); 
+  c.fill();
+  c.stroke();
 });
 
+
   // ── BODY
-  c.shadowColor = 'rgba(0,0,0,.45)'; c.shadowBlur = 16; c.shadowOffsetY = 6;
+  c.shadowColor = 'rgba(0,0,0,.45)';
+  c.shadowBlur = 16;
+  c.shadowOffsetY = 6;
   const bg = c.createRadialGradient(DX-10,DY-10,3,DX,DY,30);
-  bg.addColorStop(0,'#74eaaa'); bg.addColorStop(.5,'#27ae60'); bg.addColorStop(1,'#0e5c28');
-  c.beginPath(); c.ellipse(DX, DY, 27, 24, 0, 0, Math.PI*2);
-  c.fillStyle = bg; c.fill();
-  c.shadowBlur = 0; c.shadowOffsetY = 0;
+  bg.addColorStop(0,DRAGON_COLORS.bodyLight);
+  bg.addColorStop(.5,DRAGON_COLORS.bodyMed);
+  bg.addColorStop(1,DRAGON_COLORS.bodyDark);
+  c.beginPath();
+  c.ellipse(DX, DY, 27, 24, 0, 0, Math.PI*2);
+  c.fillStyle = bg;
+  c.fill();
+  c.shadowBlur = 0;
+  c.shadowOffsetY = 0;
   
   // belly
   const bel = c.createRadialGradient(DX+5,DY+6,1,DX,DY+6,16);
-  bel.addColorStop(0,'#d5f5e3'); bel.addColorStop(1,'rgba(213,245,227,0)');
-  c.beginPath(); c.ellipse(DX+5,DY+6,13,12,0,0,Math.PI*2);
+  bel.addColorStop(0,'#ffffffdd');
+  bel.addColorStop(1,'#ffffff00');
+  c.beginPath();
+  c.ellipse(DX+5,DY+6,13,12,0,0,Math.PI*2);
   c.fillStyle = bel; c.fill();
 
   // ── LEGS
   [[DX-14,DY+22],[DX+14,DY+22]].forEach(([lx,ly])=>{
-    c.fillStyle='#1e8449';
+    c.fillStyle=DRAGON_COLORS.handFill;//'#1e8449';
     c.beginPath(); c.ellipse(lx,ly,9,7,0,0,Math.PI*2); c.fill();
-    c.fillStyle='#f0e68c';
+    c.fillStyle=DRAGON_COLORS.crestFill;//'#f0e68c';
     [-5,0,5].forEach(cl=>{
-      c.beginPath(); c.moveTo(lx+cl,ly+5); c.lineTo(lx+cl-1,ly+12); c.lineTo(lx+cl+4,ly+6);
-      c.closePath(); c.fill();
+      c.beginPath(); c.moveTo(lx+cl,ly+5); c.lineTo(lx+cl-1,ly+12); c.lineTo(lx+cl+4,ly+6);c.closePath(); c.fill();
     });
   });
 
@@ -570,79 +633,132 @@ crests.forEach(([x1,y1,x2,y2,x3,y3])=>{
 	[DX+14,DY-2,rhx,rhy,DX+38,DY-16],
 	[DX-14,DY-2,lhx,lhy,DX+16,DY-20]
 	].forEach(([ax,ay,ex,ey,cx,cy])=>{
-    c.strokeStyle='#1a6a32'; c.lineWidth=8;
-    c.beginPath(); c.moveTo(ax,ay); c.quadraticCurveTo(cx,cy,ex,ey); c.stroke();
-    c.strokeStyle='#27ae60'; c.lineWidth=5;
-    c.beginPath(); c.moveTo(ax,ay); c.quadraticCurveTo(cx,cy,ex,ey); c.stroke();
-    c.fillStyle='#1e8449'; c.beginPath(); c.arc(ex,ey,7,0,Math.PI*2); c.fill();
-    c.fillStyle='#f0e68c';
+    c.strokeStyle=DRAGON_COLORS.greenStroke;//'#1a6a32';
+	c.lineWidth=8;
+    c.beginPath();
+	c.moveTo(ax,ay); 
+	c.quadraticCurveTo(cx,cy,ex,ey); 
+	c.stroke();
+    c.strokeStyle=DRAGON_COLORS.greenFill;//'#27ae60';
+	c.lineWidth=5;
+    c.beginPath(); 
+	c.moveTo(ax,ay); 
+	c.quadraticCurveTo(cx,cy,ex,ey); 
+	c.stroke();
+    c.fillStyle=DRAGON_COLORS.handFill;//'#1e8449'; 
+	c.beginPath();
+	c.arc(ex,ey,7,0,Math.PI*2);
+	c.fill();
+    c.fillStyle=DRAGON_COLORS.crestFill;//'#f0e68c';
     [-4,0,4].forEach(cl=>{
-      c.beginPath(); c.moveTo(ex+cl,ey+4); c.lineTo(ex+cl+5,ey+8); c.lineTo(ex+cl+3,ey+3);
-      c.closePath(); c.fill();
+      c.beginPath(); c.moveTo(ex+cl,ey+4); c.lineTo(ex+cl+5,ey+8); c.lineTo(ex+cl+3,ey+3); c.closePath(); c.fill();
     });
   });
 
   // ── NECK
-  c.strokeStyle='#1a6a32'; c.lineWidth=12;
-  c.beginPath(); c.moveTo(DX,DY-20); c.lineTo(HX,HY+16); c.stroke();
-  c.strokeStyle='#27ae60'; c.lineWidth=8;
-  c.beginPath(); c.moveTo(DX,DY-20); c.lineTo(HX,HY+16); c.stroke();
-
+  c.strokeStyle=DRAGON_COLORS.greenStroke;
+  c.lineWidth=12;
+  c.beginPath(); 
+  c.moveTo(DX,DY-20);
+  c.lineTo(HX,HY+16);
+  c.stroke();
+  c.strokeStyle=DRAGON_COLORS.greenFill;
+  c.lineWidth=8;
+  c.beginPath(); 
+  c.moveTo(DX,DY-20); 
+  c.lineTo(HX,HY+16); 
+  c.stroke();
 
 // head crests
 [
  [HX-6, HY-18,  HX+6, HY-18,  HX, HY-28],
- //[HX-14, HY-14, HX-2,HY-18, HX-14,HY-28],
- //[HX+14, HY-14, HX+2,HY-18, HX+14,HY-28]
  ].forEach(([x1,y1,x2,y2,x3,y3])=>{
-  c.fillStyle='#ff8800';
-  c.beginPath(); c.moveTo(x1,y1); c.lineTo(x2,y2); c.lineTo(x3,y3); c.closePath(); c.fill();
-  c.strokeStyle='#cc5500'; c.lineWidth=1;
-  c.beginPath(); c.moveTo(x1,y1); c.lineTo(x2,y2); c.lineTo(x3,y3); c.closePath(); c.stroke();
+  c.fillStyle=DRAGON_COLORS.crestFill;
+  c.strokeStyle=DRAGON_COLORS.crestStroke; 
+  c.lineWidth=1;
+  c.beginPath();
+  c.moveTo(x1,y1);
+  c.lineTo(x2,y2);
+  c.lineTo(x3,y3);
+  c.closePath();
+  c.fill();
 });
 
   // ── HEAD
-  c.shadowColor='rgba(0,0,0,.3)'; c.shadowBlur=10; c.shadowOffsetY=4;
+  c.shadowColor='rgba(0,0,0,.3)';
+  c.shadowBlur=10;
+  c.shadowOffsetY=4;
   const hg = c.createRadialGradient(HX-5,HY-5,2,HX,HY,20);
-  hg.addColorStop(0,'#74eaaa'); hg.addColorStop(.6,'#27ae60'); hg.addColorStop(1,'#0e5c28');
+  hg.addColorStop(0,DRAGON_COLORS.bodyLight);
+  hg.addColorStop(.5,DRAGON_COLORS.bodyMed);
+  hg.addColorStop(1,DRAGON_COLORS.bodyDark);
   c.beginPath(); c.arc(HX,HY,20,0,Math.PI*2); c.fillStyle=hg; c.fill();
   c.shadowBlur=0; c.shadowOffsetY=0;
 
-  // guance
-  c.fillStyle='rgba(255,160,160,.20)';
-  c.beginPath(); c.ellipse(HX-13,HY+5,6,4,-.3,0,Math.PI*2); c.fill();
-  c.beginPath(); c.ellipse(HX+13,HY+5,6,4,.3,0,Math.PI*2); c.fill();
+  //guance
+  c.fillStyle='#ffffff33';//'rgba(255,160,160,.20)';
+  c.beginPath();
+  c.ellipse(HX-13,HY+5,6,5,-.3,0,Math.PI*2);
+  c.fill();
+  c.beginPath();
+  c.ellipse(HX+13,HY+5,6,5,.3,0,Math.PI*2);
+  c.fill();
 
-  // snout
+  //muso
   const sg=c.createRadialGradient(HX,HY+10,1,HX,HY+10,11);
-  sg.addColorStop(0,'#74eaaa'); sg.addColorStop(1,'#27ae60');
-  c.beginPath(); c.ellipse(HX,HY+10,11,9,0,0,Math.PI*2); c.fillStyle=sg; c.fill();
-  c.fillStyle='rgba(0,0,0,.4)';
-  c.beginPath(); c.ellipse(HX-3.5,HY+9,2,1.4,-.2,0,Math.PI*2); c.fill();
-  c.beginPath(); c.ellipse(HX+3.5,HY+9,2,1.4,.2,0,Math.PI*2); c.fill();
+  sg.addColorStop(0,DRAGON_COLORS.bodyLight);
+  sg.addColorStop(1,DRAGON_COLORS.bodyMed);
+  c.beginPath(); 
+  c.ellipse(HX,HY+10,11,9,0,0,Math.PI*2);
+  c.fillStyle=sg;
+  c.fill();
+  
+  //narici
+  c.fillStyle='#00000088';//'rgba(0,0,0,.4)';
+  c.beginPath();
+  c.ellipse(HX-3.5,HY+9,2,1.4,-.2,0,Math.PI*2);
+  c.fill();
+  c.beginPath();
+  c.ellipse(HX+3.5,HY+9,2,1.4,.2,0,Math.PI*2);
+  c.fill();
 
   // ── EYES (seguono il mouse) ───────────────────────────────────
-  const mxCtx=mouseX+120, myCtx=mouseY-10;
+  const mxCtx=mouseX+120;
+  const myCtx=mouseY-10;
   [[HX-8,HY-5],[HX+8,HY-5]].forEach(([ex,ey])=>{
     // sclera + contorno
-    c.beginPath(); c.arc(ex,ey,7,0,Math.PI*2);
-    c.fillStyle='white'; c.fill();
-    c.strokeStyle='rgba(0,80,40,.3)'; c.lineWidth=1; c.stroke();
+    c.beginPath();
+	c.arc(ex,ey,7,0,Math.PI*2);
+    c.fillStyle='#ffffff';
+	c.fill();
+    c.strokeStyle='rgba(0,80,40,.3)';
+	c.lineWidth=1;
+	c.stroke();
     if(!blink){
       const ea=Math.atan2(myCtx-ey,mxCtx-ex);
-      const px=ex+Math.cos(ea)*2.2, py=ey+Math.sin(ea)*2.2;
+      const px=ex+Math.cos(ea)*2.2;
+	  const py=ey+Math.sin(ea)*2.2;
       // iride verde
-      c.beginPath(); c.arc(px,py,4.2,0,Math.PI*2);
-      c.fillStyle='#1aaa5a'; c.fill();
+      c.beginPath();
+	  c.arc(px,py,4.2,0,Math.PI*2);
+      c.fillStyle=DRAGON_COLORS.irisFill;//'#22aa66';
+	  c.fill();
       // pupilla
-      c.beginPath(); c.arc(px,py,2.4,0,Math.PI*2);
-      c.fillStyle='#050a08'; c.fill();
+      c.beginPath();
+	  c.arc(px,py,2.4,0,Math.PI*2);
+      c.fillStyle='#000000';
+	  c.fill();
       // lucino
       c.beginPath(); c.arc(px+1.4,py-.6,1.1,0,Math.PI*2);
-      c.fillStyle='white'; c.fill();
+      c.fillStyle='#ffffff';
+	  c.fill();
     } else {
-      c.strokeStyle='#0e5c28'; c.lineWidth=2.2;
-      c.beginPath(); c.moveTo(ex-6,ey); c.quadraticCurveTo(ex,ey+4,ex+6,ey); c.stroke();
+      c.strokeStyle='#116633';//'#0e5c28';
+	  c.lineWidth=2.2;
+      c.beginPath();
+	  c.moveTo(ex-6,ey);
+	  c.quadraticCurveTo(ex,ey+4,ex+6,ey);
+	  c.stroke();
     }
   });
 
@@ -1009,7 +1125,7 @@ function draw() {
 		CX.shadowBlur = 0;
 		CX.font = 'bold 26px Trebuchet MS';
 		CX.fillStyle = '#fff';
-		CX.fillText(`Punteggio: ${score}`, W / 2, H / 2 + 2);
+		CX.fillText(`POINTS: ${score}`, W / 2, H / 2 + 2);
 		CX.font = '18px Trebuchet MS';
 		CX.fillStyle = 'rgba(255,255,255,.52)';
 		CX.fillText(`BEST: ${best}`, W / 2, H / 2 + 36);
