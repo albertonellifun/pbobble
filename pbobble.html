@@ -119,7 +119,7 @@ let DRAGON_COLORS_RED = {
 	crestFill:'#ff8800', crestStroke:'#cc5500',//spine sulla schiena+unghie
 	bodyLight: '#ff6f61', bodyMed: '#c62828', bodyDark: '#4a0000',
 	greenFill: '#d32f2f', greenStroke: '#8e0000',
-	handFill: '#a60808', //zampe verde piu scuro
+	handFill: '#a60808', //zampe rosso piu scuro
 	irisFill: '#aa2266', //iride
 };
 //blu
@@ -127,44 +127,37 @@ let DRAGON_COLORS_BLUE = {
 	crestFill:'#ff8800', crestStroke:'#cc5500', // creste arancioni → contrasto top col blu
 	greenFill:'#3498db',  greenStroke:'#1f618d', // ali + coda → blu medio
 	bodyLight:'#a7d8ff',  bodyMed:'#3498db',  bodyDark:'#0b3c5d', // corpo → azzurro → blu profondo
-	handFill: '#1f618d', // zampe coerenti con ali
-	irisFill: '#85c1e9', // iride più chiara, effetto “magico”
+	handFill: '#1f618d', // zampe blu scuro
+	irisFill: '#85c1e9', // iride chiara
 };
 //grigione
 let DRAGON_COLORS_GRAY = {
 	crestFill:'#ff3b30',  crestStroke:'#8b0000', // creste rosso fuoco
-	greenFill:'#2c2c2c',  greenStroke:'#0f0f0f', // ali + coda → grigio scurissimo
-	bodyLight:'#5a5a5a',  bodyMed:'#2b2b2b',  bodyDark:'#0a0a0a', // corpo → quasi nero con volume
-	handFill: '#1a1a1a', // zampe ancora più scure
+	greenFill:'#2c2c2c',  greenStroke:'#0f0f0f', // ali + coda grigio scurissimo
+	bodyLight:'#5a5a5a',  bodyMed:'#2b2b2b',  bodyDark:'#0a0a0a', // corpo quasi nero con volume
+	handFill: '#1a1a1a', // zampe ancora piu scure
 	irisFill: '#ff1a1a', // occhi rossi glow
+};
+//orangina!
+let DRAGON_COLORS_ORANGE = {
+	crestFill:'#ff3b30',  crestStroke:'#8b0000', // creste rosso fuoco)
+	greenFill:'#e67e22',  greenStroke:'#a84300', // ali + coda arancione medio/scuro
+	bodyLight:'#ffd27f',  // arancione chiaro (luce)
+	bodyMed:'#ff8c00',    // arancione principale
+	bodyDark:'#7a2f00',   // arancione scuro/bruciato
+	handFill:'#a84300',   // zampe coerenti con le ombre
+	irisFill:'#ff4500',   // occhi arancio-rosso glow
+};
+//pinkerrimo
+let DRAGON_COLORS_PINK = {
+	crestFill:'#ff8800', crestStroke:'#cc5500', // creste arancioni contrasto top col blu
+	greenFill:'#ff6fae', greenStroke:'#a83a6f',// ali + coda rosa medio
+	bodyLight:'#ffd1e6', bodyMed:'#ff4fa3', bodyDark:'#6a1b44',// corpo rosa con profondità
+	handFill:'#a32f68',// zampe coerenti con le ombre
+	irisFill:'#ff2d8f',// occhi contrasto acceso
 };
 
 let DRAGON_COLORS = null;
-
-function stopMusic() {
-	if (!musicStarted) return;
-	const music = document.getElementById("bgMusic");
-	if (music) { music.pause(); musicStarted = false; }
-}
-
-function startMusic(fromBeginning = true) {
-	if (musicStarted || isMute) return;
-	const music = document.getElementById("bgMusic");
-	if (music) {
-	  music.volume = 0.5;
-	  if (fromBeginning) music.currentTime = 0;
-	  music.play();
-	  musicStarted = true;
-	}
-}
-
-function playSound(id) {
-	if (isMute) return;
-	const audio = document.getElementById(id);
-	if (!audio) return;//id non valido
-	audio.currentTime = 0;
-    audio.play();
-}
 
 const BUBBLE_COLORS = [ '#dd0000', //rossa
 						'#0000dd', //blu
@@ -208,6 +201,34 @@ const CX = cv.getContext('2d');
 const sd = document.getElementById('sd');
 const bd = document.getElementById('bd');
 bd.textContent = best;
+
+//music!
+function stopMusic() {
+	if (!musicStarted) return;
+	const music = document.getElementById("bgMusic");
+	if (music) { music.pause(); musicStarted = false; }
+}
+
+function startMusic(fromBeginning = true) {
+	if (musicStarted || isMute) return;
+	const music = document.getElementById("bgMusic");
+	if (music) {
+	  music.volume = 0.5;
+	  if (fromBeginning) music.currentTime = 0;
+	  music.play();
+	  musicStarted = true;
+	}
+}
+
+function playSound(id) {
+	if (isMute) return;
+	const audio = document.getElementById(id);
+	if (!audio) return;//id non valido
+	audio.currentTime = 0;
+    audio.play();
+}
+
+
 
 // ─── Grid helpers
 function cols(r) {
@@ -305,7 +326,7 @@ function pickColor() {
 	for (let r = 0; r < ROWS; r++)
 		for (let c = 0; c < cols(r); c++)
 			if (grid[r][c] > 0) p.push(grid[r][c]);
-	if (p.length < 3) return Math.ceil(Math.random() * 5);
+	if (p.length < 3) return Math.ceil(Math.random() * BUBBLE_COLORS.length);
 	return p[Math.floor(Math.random() * p.length)];
 }
 
@@ -413,10 +434,12 @@ function initGrid() {
 	nxt4 = pickColor();
 	drawNext();
 	
-	let col = Date.now() % 4;
+	let col = new Date().getSeconds() % 6;
 	DRAGON_COLORS = col === 0 ? DRAGON_COLORS_GREEN : 
 					col === 1 ? DRAGON_COLORS_BLUE :
 					col === 2 ? DRAGON_COLORS_RED : 
+					col === 3 ? DRAGON_COLORS_ORANGE :
+					col === 4 ? DRAGON_COLORS_PINK :
 					DRAGON_COLORS_GRAY;
 }
 
