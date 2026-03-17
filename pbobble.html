@@ -26,9 +26,9 @@ body {
 
 #header {
  display: flex;
- justify-content: space-between;
+ justify-content: center;
  align-items: center;
- width: 400px;
+ gap: 60px;
 }
 
 .sbox {
@@ -39,9 +39,9 @@ body {
  );
  border: 1px solid rgba(255, 255, 255, 0.12);
  border-radius: 14px;
- padding: 6px 18px;
+ padding: 8px 24px;
  text-align: center;
- min-width: 120px;
+ min-width: 140px;
 }
 
 .slbl {
@@ -1139,30 +1139,8 @@ function shoot() {
 }
 
 //listeners
-cv.addEventListener('mousemove', e => {
-	const rect = cv.getBoundingClientRect();
-	const sx = W / rect.width;
-	mouseX = (e.clientX - rect.left) * sx;
-	mouseY = (e.clientY - rect.top) * sx;
-
-	if (state !== 'aiming') return;
-
-	const mx = e.clientX - rect.left;
-
-	ang = getAng(e);
-
-	if (lastMouseX !== null) {
-		const dx = mx - lastMouseX;
-		gearRot += dx * 0.01; //rotazione proporzionale allo spostamento
-	}
-
-	lastMouseX = mx;
-});
-
-cv.addEventListener('mouseleave', () => {
-	lastMouseX = null;
-});
-
+cv.addEventListener('mousemove', e => handlePointerMove(e.clientX, e.clientY));
+cv.addEventListener('mouseleave', () => { lastMouseX = null; });
 cv.addEventListener('click', e => {
 	if (!isMute && !musicStarted) startMusic();
 	
@@ -1176,12 +1154,32 @@ cv.addEventListener('click', e => {
 	}
 });
 
+function handlePointerMove(x, y) {
+	// scala corretta rispetto al canvas
+	const rect = cv.getBoundingClientRect();
+	const sx = W / rect.width;
+	mouseX = (x - rect.left) * sx;
+	mouseY = (y - rect.top) * sx;
+
+	if (state !== 'aiming') return;
+
+	const mx = x - rect.left;
+
+	ang = getAng({ clientX: x, clientY: y });
+
+	if (lastMouseX !== null) {
+		const dx = mx - lastMouseX;
+		gearRot += dx * 0.01;
+	}
+	lastMouseX = mx;
+}
+//touch
 cv.addEventListener('touchmove', e => {
-	e.preventDefault();
-	if (state === 'aiming') ang = getAng(e);
-}, {
-	passive: false
-});
+	e.preventDefault(); //niente scroll pagina
+	if (e.touches.length > 0) {
+		handlePointerMove(e.touches[0].clientX, e.touches[0].clientY);
+	}
+}, { passive: false });
 
 cv.addEventListener('touchend', e => {
 	if (!isMute && !musicStarted) startMusic();
@@ -1192,6 +1190,8 @@ cv.addEventListener('touchend', e => {
 		return;
 	}
 	if (state === 'aiming') shoot();
+	
+	lastMouseX = null;
 }, {
 	passive: false
 });
@@ -1210,9 +1210,21 @@ window.addEventListener('keydown', e => {
 
 // ─── Responsive
 function rescale() {
-	const mw = Math.min(window.innerWidth - 16, 400);
-	cv.style.width = `${mw}px`;
-	cv.style.height = `${H*(mw/400)}px`;
+	var wiw = window.innerWidth;
+	var wih = window.innerHeight;
+	const ratio = W/H;
+	
+	const mw = Math.max(wiw - 16, W/2);//W=400
+	const mh = Math.max(wih - 100, H/2);//H=560
+	
+	if (mw/ratio > wih) {
+		cv.style.width = `${mh*ratio}px`;
+		cv.style.height = `${mh}px`;
+	} else {
+		cv.style.width = `${mw}px`;
+		cv.style.height = `${mw/ratio}px`;
+	}	
+	
 	document.getElementById('header').style.width = `${mw}px`;
 }
 rescale();
