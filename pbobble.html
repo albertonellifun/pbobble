@@ -11,7 +11,7 @@
  box-sizing: border-box;
 }
 body {
- background: #080820;
+ background: linear-gradient(180deg, #0022aa, #99bbff);
  display: flex;
  flex-direction: column;
  align-items: center;
@@ -37,7 +37,7 @@ body {
   rgba(255, 255, 255, 0.1),
   rgba(255, 255, 255, 0.04)
  );
- border: 1px solid rgba(255, 255, 255, 0.12);
+ border: 4px solid rgba(255, 255, 255, 0.12);
  border-radius: 14px;
  padding: 8px 24px;
  text-align: center;
@@ -64,7 +64,7 @@ body {
 #gc {
  display: block;
  cursor: crosshair;
- border: 1px solid rgba(255, 255, 255, 0.12);
+ border: 4px solid rgba(255, 255, 255, 0.12);
  border-radius: 14px;
 }
 
@@ -83,7 +83,7 @@ button {
 		<div class="sbox"><div class="slbl">BEST</div><div class="sval" id="bd">0</div></div>
 		<div class="sbox">
 			<button onclick="changeMute()">🎵</button>
-			<button onclick="DRAGON_COLORS=pickDragonColor();">🌈</button>
+			<button onclick="pickDragonColor();pickSkyColor()">🌈</button>
 			<button onclick="reset()">♻️</button>
 		</div>
 	</div>
@@ -120,6 +120,13 @@ let mouseY = H / 2;//per muovere gli occhi del drago
 let isMute = false;
 let musicStarted = false;
 let nextAnim = null;
+
+let currentSkyColor = 0;
+let SKY_COLORS = [
+	{skyDark: '#0022aa', skyLight:'#99bbff'},
+	{skyDark: '#aa0000', skyLight:'#000000',},
+	{skyDark: '#ff66aa', skyLight:'#ffddee'}
+	];
 
 //verde
 let DRAGON_COLORS_GREEN = {
@@ -345,12 +352,20 @@ function pickColor() {
 
 function pickDragonColor() {
 	let col = new Date().getSeconds() % 6;
-	return col === 0 ? DRAGON_COLORS_GREEN : 
+	DRAGON_COLORS = 
+		col === 0 ? DRAGON_COLORS_GREEN : 
 		col === 1 ? DRAGON_COLORS_BLUE :
 		col === 2 ? DRAGON_COLORS_RED : 
 		col === 3 ? DRAGON_COLORS_ORANGE :
 		col === 4 ? DRAGON_COLORS_PINK :
 		DRAGON_COLORS_GRAY;
+}
+
+function pickSkyColor() {
+	currentSkyColor = new Date().getSeconds() % SKY_COLORS.length;
+	//cambia anche il bg del body
+	const sky = SKY_COLORS[currentSkyColor];
+	document.body.style.backgroundImage = `linear-gradient(180deg, ${sky.skyDark}, ${sky.skyLight})`;
 }
 
 // ─── Place bubble
@@ -457,7 +472,8 @@ function initGrid() {
 	nxt4 = pickColor();
 	drawNext();
 	
-	DRAGON_COLORS = pickDragonColor();
+	pickDragonColor();
+	pickSkyColor();
 }
 
 //RESET
@@ -1072,8 +1088,8 @@ function draw() {
 
 	// BG gradient
 	const bg = CX.createLinearGradient(0, 0, 0, H);
-	bg.addColorStop(0, '#0022aa');
-	bg.addColorStop(1, '#99bbff');
+	bg.addColorStop(0, SKY_COLORS[currentSkyColor].skyDark);
+	bg.addColorStop(1, SKY_COLORS[currentSkyColor].skyLight);
 	CX.fillStyle = bg;
 	CX.fillRect(0, 0, W, H);
 
@@ -1378,7 +1394,7 @@ function rescale() {
 	const ratio = W / H;
 
 	const maxW = wiw - 16;
-	const maxH = wih - 60;
+	const maxH = wih - 80;
 
 	let newW;
 	let newH;
