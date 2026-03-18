@@ -16,7 +16,7 @@ body {
  flex-direction: column;
  align-items: center;
  justify-content: center;
- gap: 6px;
+ gap: 5px;
  min-height: 100vh;
  overflow: hidden;
  touch-action: none;
@@ -24,11 +24,12 @@ body {
  font-family: "Arial Rounded MT Bold", "Trebuchet MS", sans-serif;
 }
 
-#header {
+#header, #footer {
  display: flex;
  justify-content: center;
  align-items: center;
  gap: 10px;
+ flex-wrap: nowrap;
 }
 
 .sbox {
@@ -43,21 +44,29 @@ body {
  text-align: center;
  overflow: hidden;
  white-space: nowrap;
- height: 58px;
+ height: 50px;
+ flex: 1;
+ 
+ display: flex;
+ flex-direction: row;
+ align-items: center;
+ justify-content: space-between;
 }
 
 .slbl {
- font-size: 9px;
+ font-size: 14px;
  letter-spacing: 3px;
  text-transform: uppercase;
  color: rgba(255, 255, 255, 0.4);
+ text-shadow: 1px 1px 2px rgba(0,0,0,0.6);
 }
 
-.sval {
- font-size: 20px;
+.sval, span {
+ font-size: 24px;
  font-weight: 900;
  color: #fff;
  letter-spacing: -1px;
+ text-shadow: 1px 1px 4px rgba(0,0,0,0.6);
 }
 
 #gc {
@@ -68,25 +77,33 @@ body {
 }
 
 button {
- width: 40px;
- height: 32px;
  background: none;
  border: 0;
- font-size: 28px;
+ font-size: 24px;
+ text-shadow: 1px 1px 4px rgba(0,0,0,0.6);
 }
 </style>
 </head>
 <body>
 	<div id="header">
-		<div class="sbox"><div class="slbl">POINTS</div><div class="sval" id="sd">0</div></div>
-		<div class="sbox"><div class="slbl">BEST</div><div class="sval" id="bd">0</div></div>
 		<div class="sbox">
+			<div class="slbl">OPTIONS</div>
 			<button onclick="changeMute()">🎵</button>
-			<button onclick="pickDragonColor();pickSkyColor()">🌈</button>
+			<button onclick="pickSkyColor()">🌈</button>
+			<button onclick="pickDragonColor()">🐲</button>
+			<button onclick="drawTrajEnabled=!drawTrajEnabled">❓</button>
 			<button onclick="reset()">♻️</button>
+			<span> </span>
+			<button onclick="changeColorCount(-1)">➖</button>
+			<span id="colorCountLabel">7</span>
+			<button onclick="changeColorCount(1)">➕</button>
 		</div>
 	</div>
 	<canvas id="gc" width="400" height="560"></canvas>
+	<div id="footer">
+		<div class="sbox"><div class="slbl">POINTS</div><div class="sval" id="sd">0</div></div>
+		<div class="sbox"><div class="slbl">BEST</div><div class="sval" id="bd">0</div></div>
+	</div>
 
 	<audio id="bgMusic" loop preload="auto"><source src="./pb-music1.mp3" type="audio/mpeg"></audio>
 	<audio id="boing" preload="auto"><source src="./pb-boing.mp3" type="audio/mpeg"></audio>
@@ -119,6 +136,8 @@ let mouseY = H / 2;//per muovere gli occhi del drago
 let isMute = false;
 let musicStarted = false;
 let nextAnim = null;
+
+let drawTrajEnabled = true;
 
 let currentSkyColor = 0;
 let SKY_COLORS = [
@@ -181,19 +200,35 @@ let DRAGON_COLORS_PINK = {
 
 let DRAGON_COLORS = null;
 
-const BUBBLE_COLORS = [ '#dd0000', //rossa
-						'#0000dd', //blu
-						'#00dd00', //verde
-						
-						'#eecc44', //gialla
-						'#dd66dd', //rosa
-						'#ff8800', //arancio
-						'#33ddee', //celeste
-						
-						//'#992299', //violetta
-						//'#cccccc', //grigia chiara
-						//'#999999', //grigione
-						];
+const BUBBLE_COLORS_ALL = [ 
+		'#dd0000', //rossa
+		'#0000dd', //blu
+		'#00dd00', //verde
+		
+		'#eecc44', //gialla
+		'#dd66dd', //rosa
+		'#ff8800', //arancio
+		'#33ddee', //celeste
+		
+		'#992299', //violetta
+		'#dddddd', //grigia chiara
+		'#999999', //grigione
+		'#222222', //quasi nera
+		];
+let colorCount = 7;
+let BUBBLE_COLORS = BUBBLE_COLORS_ALL.slice(0, colorCount);
+
+function changeColorCount(delta) {
+  colorCount += delta;
+
+  if (colorCount < 3) colorCount = 3;//altrimenti troppo facile
+  if (colorCount > BUBBLE_COLORS_ALL.length) colorCount = ALL_COLORS.length;
+  
+  BUBBLE_COLORS = BUBBLE_COLORS_ALL.slice(0, colorCount);
+  document.getElementById("colorCountLabel").textContent = colorCount;
+
+  reset(); // riavvia il gioco con nuovi colori
+}
 
 // Dragon egg anchor
 const DX = W / 2;
@@ -510,7 +545,7 @@ function drawBub(c, x, y, ci, rad, al) {
 	c.save();
 	c.globalAlpha = al;
 	c.shadowColor = col;
-	c.shadowBlur = rad * .66;
+	c.shadowBlur = rad * 0.66;
 	const g = c.createRadialGradient(x - rad * .3, y - rad * .3, rad * .05, x, y, rad);
 	g.addColorStop(0, sh(col, 110));
 	g.addColorStop(.55, col);
@@ -1003,6 +1038,7 @@ function drawGear(c, cx, cy, rIn, rOut, n, rot, spokes, fillCol = '#546e7a', rim
 
 // ─── Trajectory preview
 function drawTraj(c, a, now) {
+	if (!drawTrajEnabled) return;
 	const pivX = DX;
 	const pivY = DY - 17;
 	//let tx = pivX + Math.cos(a) * 48;
@@ -1394,7 +1430,7 @@ function rescale() {
 	const ratio = W / H;
 
 	const maxW = wiw - 16;
-	const maxH = wih - 80;
+	const maxH = wih - 130;
 
 	let newW;
 	let newH;
@@ -1411,6 +1447,7 @@ function rescale() {
 	cv.style.height = `${newH}px`;
 
 	document.getElementById('header').style.width = `${newW}px`;
+	document.getElementById('footer').style.width = `${newW}px`;
 }
 rescale();
 window.addEventListener('resize', rescale);
