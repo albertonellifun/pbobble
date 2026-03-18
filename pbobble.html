@@ -1280,7 +1280,7 @@ function update() {
 		}
 		// ceiling
 		if (ball.y - R <= GRID_TOP) {
-			place(ball.x, GRID_TOP + R);
+			place(ball.x, GRID_TOP);//fix, era GRID_TOP + R!
 			ball = null;
 			return;
 		}
