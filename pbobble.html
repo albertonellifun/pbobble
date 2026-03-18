@@ -41,9 +41,9 @@ body {
  border-radius: 14px;
  padding: 8px 24px;
  text-align: center;
- xxxmin-width: 140px;
  overflow: hidden;
  white-space: nowrap;
+ height: 58px;
 }
 
 .slbl {
@@ -51,7 +51,6 @@ body {
  letter-spacing: 3px;
  text-transform: uppercase;
  color: rgba(255, 255, 255, 0.4);
- margin-bottom: 2px;
 }
 
 .sval {
@@ -69,8 +68,8 @@ body {
 }
 
 button {
- min-width: 40px;
- min-height: 40px;
+ width: 40px;
+ height: 32px;
  background: none;
  border: 0;
  font-size: 28px;
@@ -123,9 +122,10 @@ let nextAnim = null;
 
 let currentSkyColor = 0;
 let SKY_COLORS = [
-	{skyDark: '#0022aa', skyLight:'#99bbff'},
-	{skyDark: '#aa0000', skyLight:'#000000',},
-	{skyDark: '#ff66aa', skyLight:'#ffddee'}
+	{skyDark: '#0022aa', skyLight:'#99bbff'},//blue
+	{skyDark: '#aa0000', skyLight:'#000000',},//red
+	{skyDark: '#ee6699', skyLight:'#ffeeff'},//pink
+	{skyDark: '#117700', skyLight:'#ffffdd'},//green
 	];
 
 //verde
