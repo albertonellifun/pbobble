@@ -220,10 +220,10 @@ let BUBBLE_COLORS = BUBBLE_COLORS_ALL.slice(0, colorCount);
 
 function changeColorCount(delta) {
   colorCount += delta;
-
-  if (colorCount < 3) colorCount = 3;//altrimenti troppo facile
-  if (colorCount > BUBBLE_COLORS_ALL.length) colorCount = ALL_COLORS.length;
   
+  if (colorCount < 2) colorCount = 2;
+  if (colorCount > BUBBLE_COLORS_ALL.length) colorCount = BUBBLE_COLORS_ALL.length;  
+
   BUBBLE_COLORS = BUBBLE_COLORS_ALL.slice(0, colorCount);
   document.getElementById("colorCountLabel").textContent = colorCount;
 
