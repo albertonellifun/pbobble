@@ -28,7 +28,7 @@ body {
  display: flex;
  justify-content: center;
  align-items: center;
- gap: 60px;
+ gap: 10px;
 }
 
 .sbox {
@@ -41,7 +41,9 @@ body {
  border-radius: 14px;
  padding: 8px 24px;
  text-align: center;
- min-width: 140px;
+ xxxmin-width: 140px;
+ overflow: hidden;
+ white-space: nowrap;
 }
 
 .slbl {
@@ -53,7 +55,7 @@ body {
 }
 
 .sval {
- font-size: 22px;
+ font-size: 20px;
  font-weight: 900;
  color: #fff;
  letter-spacing: -1px;
@@ -65,12 +67,25 @@ body {
  border: 1px solid rgba(255, 255, 255, 0.12);
  border-radius: 14px;
 }
+
+button {
+ min-width: 40px;
+ min-height: 40px;
+ background: none;
+ border: 0;
+ font-size: 28px;
+}
 </style>
 </head>
 <body>
 	<div id="header">
 		<div class="sbox"><div class="slbl">POINTS</div><div class="sval" id="sd">0</div></div>
 		<div class="sbox"><div class="slbl">BEST</div><div class="sval" id="bd">0</div></div>
+		<div class="sbox">
+			<button onclick="changeMute()">🎵</button>
+			<button onclick="DRAGON_COLORS=pickDragonColor();">🌈</button>
+			<button onclick="reset()">♻️</button>
+		</div>
 	</div>
 	<canvas id="gc" width="400" height="560"></canvas>
 
@@ -196,10 +211,8 @@ let parts = [];// {x,y,vx,vy,r,a,ci}
 // ─── DOM
 const cv = document.getElementById('gc');
 const CX = cv.getContext('2d');
-//const nc = document.getElementById('nc');
-//const NX = nc.getContext('2d');
-const sd = document.getElementById('sd');
-const bd = document.getElementById('bd');
+const sd = document.getElementById('sd');//score div
+const bd = document.getElementById('bd');//best div
 bd.textContent = best;
 
 //music!
@@ -320,7 +333,7 @@ function isEmpty() {
 	return true;
 }
 
-// ─── Pick color (only colors on board) ───────────────────────────────────────
+// ─── Pick color (only colors on board)
 function pickColor() {
 	const p = [];
 	for (let r = 0; r < ROWS; r++)
@@ -328,6 +341,16 @@ function pickColor() {
 			if (grid[r][c] > 0) p.push(grid[r][c]);
 	if (p.length < 3) return Math.ceil(Math.random() * BUBBLE_COLORS.length);
 	return p[Math.floor(Math.random() * p.length)];
+}
+
+function pickDragonColor() {
+	let col = new Date().getSeconds() % 6;
+	return col === 0 ? DRAGON_COLORS_GREEN : 
+		col === 1 ? DRAGON_COLORS_BLUE :
+		col === 2 ? DRAGON_COLORS_RED : 
+		col === 3 ? DRAGON_COLORS_ORANGE :
+		col === 4 ? DRAGON_COLORS_PINK :
+		DRAGON_COLORS_GRAY;
 }
 
 // ─── Place bubble
@@ -434,13 +457,7 @@ function initGrid() {
 	nxt4 = pickColor();
 	drawNext();
 	
-	let col = new Date().getSeconds() % 6;
-	DRAGON_COLORS = col === 0 ? DRAGON_COLORS_GREEN : 
-					col === 1 ? DRAGON_COLORS_BLUE :
-					col === 2 ? DRAGON_COLORS_RED : 
-					col === 3 ? DRAGON_COLORS_ORANGE :
-					col === 4 ? DRAGON_COLORS_PINK :
-					DRAGON_COLORS_GRAY;
+	DRAGON_COLORS = pickDragonColor();
 }
 
 //RESET
@@ -597,8 +614,8 @@ function drawDragon(c, now) {
 
 	// ── BACK CRESTS == WINGS
 const crests = [
-  [DX-24,  DY-10,  DX-28,  DY-68, DX-12,  DY-22],  // sinistra
-  [DX+24,  DY-10,  DX+28,  DY-68, DX+12,  DY-22],  // destra
+  [DX-22-gearRot/4,  DY+20,  DX-28-gearRot,  DY-68, DX-12,  DY-22],  // sinistra
+  [DX+22+gearRot/4,  DY+20,  DX+28+gearRot,  DY-68, DX+12,  DY-22],  // destra
 ];
 crests.forEach(([x1,y1,x2,y2,x3,y3])=>{
   c.fillStyle=DRAGON_COLORS.greenFill;
@@ -1343,28 +1360,41 @@ window.addEventListener('keydown', e => {
 	}
 	if (e.key === 'ArrowLeft') ang = Math.max(-Math.PI + .05, ang - .04);
 	if (e.key === 'ArrowRight') ang = Math.min(-.05, ang + .04);
-	if (e.key === 'R' || e.key === 'r') reset();
-	if (e.key === 'M' || e.key === 'm') { isMute = !isMute; if(musicStarted) stopMusic(); else if(!isMute) startMusic(); }
+	if (e.key === 'R' || e.key === 'r') { reset(); }
+	if (e.key === 'M' || e.key === 'm') { changeMute(); }
+	if (e.key === 'D' || e.key === 'd') { DRAGON_COLORS = pickDragonColor(); }
 });
+
+function changeMute() {
+	isMute = !isMute; 
+	if(musicStarted) stopMusic(); 
+	else if(!isMute) startMusic();
+}
 
 // ─── Responsive
 function rescale() {
-	var wiw = window.innerWidth;
-	var wih = window.innerHeight;
-	const ratio = W/H;
-	
-	const mw = Math.max(wiw - 16, W/2);//W=400
-	const mh = Math.max(wih - 100, H/2);//H=560
-	
-	if (mw/ratio > wih) {
-		cv.style.width = `${mh*ratio}px`;
-		cv.style.height = `${mh}px`;
+	const wiw = window.innerWidth;
+	const wih = window.innerHeight;
+	const ratio = W / H;
+
+	const maxW = wiw - 16;
+	const maxH = wih - 60;
+
+	let newW;
+	let newH;
+
+	if (maxW / ratio > maxH) {
+		newH = maxH;
+		newW = newH * ratio;
 	} else {
-		cv.style.width = `${mw}px`;
-		cv.style.height = `${mw/ratio}px`;
-	}	
-	
-	document.getElementById('header').style.width = `${mw}px`;
+		newW = maxW;
+		newH = newW / ratio;
+	}
+
+	cv.style.width = `${newW}px`;
+	cv.style.height = `${newH}px`;
+
+	document.getElementById('header').style.width = `${newW}px`;
 }
 rescale();
 window.addEventListener('resize', rescale);
