@@ -92,6 +92,7 @@ button {
 			<button onclick="pickSkyColor()">🌈</button>
 			<button onclick="pickDragonColor()">🐲</button>
 			<button onclick="drawTrajEnabled=!drawTrajEnabled">❓</button>
+			<button onclick="rainbowMode=!rainbowMode;reset()">🎨</button>
 			<button onclick="reset()">♻️</button>
 			<span> </span>
 			<button onclick="changeColorCount(-1)">➖</button>
@@ -138,6 +139,7 @@ let musicStarted = false;
 let nextAnim = null;
 
 let drawTrajEnabled = true;//traiettoria
+let rainbowMode = false;//se true, i colori sono in ordine!
 
 let currentSkyColor = 0;
 let SKY_COLORS = [
@@ -204,15 +206,15 @@ const BUBBLE_COLORS_ALL = [
 		'#dd0000', //rossa
 		'#0000dd', //blu
 		'#00dd00', //verde
-		
 		'#eecc44', //gialla
 		'#dd66dd', //rosa
 		'#ff8800', //arancio
 		'#33ddee', //celeste
-		
-		'#881188', //violetta
+		'#448844', //verdone
+		'#993399', //violetta
+		'#885522', //marrone-bronzo
 		'#ddddee', //grigia chiara
-		'#888899', //grigione
+		'#888899', //grigione		
 		'#222233', //quasi nera
 		];
 let colorCount = 7;
@@ -259,6 +261,34 @@ function getBackgroundGradient(c, sky) {
 	bgCache[key] = g;
 	return g;
 }
+
+const cloudGradientCache = {};
+function getCloudGradient(c) {
+	const key = "cloud";
+
+	if (cloudGradientCache[key]) return cloudGradientCache[key];
+	
+	//gradiente nuvola
+    const grd = c.createLinearGradient(0, 440, 0, H);
+    grd.addColorStop(0, '#f4f8ff');
+    grd.addColorStop(0.5, '#e3edff');
+    grd.addColorStop(1, '#c9d8f0');
+
+	//gradiente luce sopra
+    const topLight = c.createLinearGradient(0, 500, 0, 560);
+    topLight.addColorStop(0, 'rgba(255,255,255,1)');
+    topLight.addColorStop(1, 'rgba(255,255,255,0)');
+    
+	//gradiente ombra sotto
+	const bottomShadow = c.createLinearGradient(0, 560, 0, 620);
+    bottomShadow.addColorStop(0, 'rgba(120,150,220,0.25)');
+    bottomShadow.addColorStop(1, 'rgba(0,0,0,0)');
+	
+
+	cloudGradientCache[key] = {grd:grd, topLight:topLight, bottomShadow:bottomShadow};
+	return {grd:grd, topLight:topLight, bottomShadow:bottomShadow};
+}
+
 
 //puzzle bobble aveva la scacchiera!!!
 let checkerPattern;
@@ -543,13 +573,20 @@ function startNextAnimation() {
 
 //INIT
 function initGrid() {
+	let idx = 0;
 	grid = [];
-	for (let r = 0; r < ROWS; r++) grid[r] = new Array(cols(r)).fill(0);
-	for (let r = 0; r < 7; r++)
+	
+	for (let r = 0; r < ROWS; r++) grid[r] = new Array(cols(r)).fill(0);//0==vuoto
+	
+	let xx = (Math.random() * 100)|0;
+	
+	for (let r = 0; r < 7; r++) {
 		for (let c = 0; c < cols(r); c++) {
-			if (r > 3 && Math.random() < .28) continue;
-			grid[r][c] = Math.ceil(Math.random() * BUBBLE_COLORS.length);
+			if (r > 3 && Math.random() < .2) continue;
+			grid[r][c] = rainbowMode ? ((xx+r+c)%BUBBLE_COLORS.length)+1 : Math.ceil(Math.random() * BUBBLE_COLORS.length);
 		}
+	}
+	
 	cur = pickColor();
 	nxt = pickColor();
 	nxt2 = pickColor();
@@ -591,21 +628,17 @@ function hr(hex) {
 }
 
 // ─── Draw Bubble
-function drawBub(c, x, y, ci, rad, al) {
-	al = al ?? 1;
-	const col = BUBBLE_COLORS[ci - 1];
+function drawBub(c, x, y, ci, rad, alpha) {
+	alpha = alpha ?? 1;//solo per quelle esplose
+	
 	c.save();
-	c.globalAlpha = al;
-	c.shadowColor = col;
+	c.globalAlpha = alpha;
+	c.shadowColor = BUBBLE_COLORS[ci - 1];
 	c.shadowBlur = rad * 0.66;
 	c.translate(x, y);
 	c.fillStyle = getBubbleGradient(c, ci, rad);
-	/*const g = c.createRadialGradient(x - rad * .3, y - rad * .3, rad * .05, x, y, rad);
-	g.addColorStop(0, sh(col, 110));
-	g.addColorStop(.55, col);
-	g.addColorStop(1, sh(col, -75));
-	c.fillStyle = g;
-	*/
+
+	//riflesso luce interno
 	c.beginPath();
 	c.arc(0, 0, rad, 0, Math.PI * 2);//x,y
 	c.fill();
@@ -614,9 +647,11 @@ function drawBub(c, x, y, ci, rad, al) {
 	c.ellipse(- rad * .28, - rad * .32, rad * .21, rad * .12, -.5, 0, Math.PI * 2);//x-,y-
 	c.fillStyle = 'rgba(255,255,255,.52)';
 	c.fill();
+	
+	//contorno
 	c.beginPath();
 	c.arc(0, 0, rad, 0, Math.PI * 2);//x,y
-	c.strokeStyle = BUBBLE_COLORS[ci - 1]+'55';//'rgba(255,255,255,.22)';
+	c.strokeStyle = BUBBLE_COLORS[ci - 1]+'44';//'rgba(255,255,255,.22)';
 	c.lineWidth = 1.2;
 	c.stroke();
 	c.restore();
@@ -626,23 +661,7 @@ function drawBub(c, x, y, ci, rad, al) {
 function drawCloud(c) {
 	let dx = -20;
 	let dy = -40;
-	
-	//gradiente
-    const grd = c.createLinearGradient(0, 440, 0, H);
-    grd.addColorStop(0, '#f4f8ff');
-    grd.addColorStop(0.5, '#e3edff');
-    grd.addColorStop(1, '#c9d8f0');
-
-	//gradiente luce sopra
-    const topLight = c.createLinearGradient(0, 500, 0, 560);
-    topLight.addColorStop(0, 'rgba(255,255,255,1)');
-    topLight.addColorStop(1, 'rgba(255,255,255,0)');
-    
-	//gradiente ombra sotto
-	const bottomShadow = c.createLinearGradient(0, 560, 0, 620);
-    bottomShadow.addColorStop(0, 'rgba(120,150,220,0.25)');
-    bottomShadow.addColorStop(1, 'rgba(0,0,0,0)');
-    
+	    
 	//nuvoletta
     c.beginPath();
     c.moveTo(-20+dx, 600+dy);
@@ -659,16 +678,16 @@ function drawCloud(c) {
 	c.strokeStyle = 'rgba(255,255,255,0.6)';
 	c.lineWidth = 4;
 
-	c.fillStyle = grd;
+	c.fillStyle = getCloudGradient(c).grd;
 	c.fill();
 	c.stroke();
 
     c.shadowBlur = 0;
 	
-    c.fillStyle = topLight;
+    c.fillStyle = getCloudGradient(c).topLight;
     c.fill();
 
-    c.fillStyle = bottomShadow;
+    c.fillStyle = getCloudGradient(c).bottomShadow;
     c.fill();
 }
 
@@ -1274,7 +1293,7 @@ function draw() {
 	//animazione prossima bubble
 	if (nextAnim) {
 		const scale = 1 - nextAnim.t * 0.3;
-		drawBub( CX, nextAnim.x, nextAnim.y, nextAnim.ci, R * scale, 1 );
+		drawBub( CX, nextAnim.x, nextAnim.y, nextAnim.ci, R * scale, 1);
 	}
 }
 
