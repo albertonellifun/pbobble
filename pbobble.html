@@ -1262,31 +1262,24 @@ function draw() {
 		drawBub(CX, ball.x, ball.y, ball.ci, R, 1);
 	}
 
-	// ── Overlays
+	// ── Overlays fine gioco
 	if (state === 'gameover') {
-		drawEndGame('GAME OVER','#e74c3c');
+		drawEndGame('GAME OVER', '#e74c3c', now);
 	}
+	
 	if (state === 'win') {
-		drawEndGame('YOU WIN! 🎉','#2ecc71');
+		drawEndGame('YOU WIN! 🎉', '#2ecc71', now);
 	}
 	
-	
+	//animazione prossima bubble
 	if (nextAnim) {
 		const scale = 1 - nextAnim.t * 0.3;
-
-		drawBub(
-			CX,
-			nextAnim.x,
-			nextAnim.y,
-			nextAnim.ci,
-			R * scale,
-			1
-		);
+		drawBub( CX, nextAnim.x, nextAnim.y, nextAnim.ci, R * scale, 1 );
 	}
 }
 
 //scritta fine gioco
-function drawEndGame(testo, colore) {
+function drawEndGame(testo, colore, now) {
 	CX.fillStyle = 'rgba(5,5,20,.82)';
 	CX.fillRect(0, 0, W, H);
 	CX.textAlign = 'center';
