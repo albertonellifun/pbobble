@@ -133,17 +133,17 @@ let lastMouseX = null;
 let mouseX = W / 2;
 let mouseY = H / 2;//per muovere gli occhi del drago
 
-let isMute = false;
+let isMute = false;//
 let musicStarted = false;
 let nextAnim = null;
 
-let drawTrajEnabled = true;
+let drawTrajEnabled = true;//traiettoria
 
 let currentSkyColor = 0;
 let SKY_COLORS = [
 	{skyDark: '#0022aa', skyLight:'#99bbff'},//blue
 	{skyDark: '#aa0000', skyLight:'#000000',},//red
-	{skyDark: '#ee6699', skyLight:'#ffeeff'},//pink
+	{skyDark: '#cc2255', skyLight:'#ffeeff'},//pink
 	{skyDark: '#117700', skyLight:'#ffffdd'},//green
 	];
 
@@ -210,10 +210,10 @@ const BUBBLE_COLORS_ALL = [
 		'#ff8800', //arancio
 		'#33ddee', //celeste
 		
-		'#992299', //violetta
-		'#dddddd', //grigia chiara
-		'#999999', //grigione
-		'#222222', //quasi nera
+		'#881188', //violetta
+		'#ddddee', //grigia chiara
+		'#888899', //grigione
+		'#222233', //quasi nera
 		];
 let colorCount = 7;
 let BUBBLE_COLORS = BUBBLE_COLORS_ALL.slice(0, colorCount);
@@ -547,7 +547,7 @@ function initGrid() {
 	for (let r = 0; r < ROWS; r++) grid[r] = new Array(cols(r)).fill(0);
 	for (let r = 0; r < 7; r++)
 		for (let c = 0; c < cols(r); c++) {
-			if (r > 4 && Math.random() < .28) continue;
+			if (r > 3 && Math.random() < .28) continue;
 			grid[r][c] = Math.ceil(Math.random() * BUBBLE_COLORS.length);
 		}
 	cur = pickColor();
@@ -686,7 +686,7 @@ function drawDragon(c, now) {
   
   // tail crests
 [
-	[DX-57, DY-16+tsw, DX-45, DY-14+tsw, DX-46, DY-30+tsw], //triangolo punta coda
+	[DX-58, DY-16+tsw, DX-45, DY-14+tsw, DX-46, DY-30+tsw], //triangolo punta coda
 	[DX-52, DY-10+tsw, DX-55, DY+2+tsw,  DX-48, DY-3+tsw], //triangolo finale
 	[DX-52, DY+10+tsw, DX-45, DY+14+tsw, DX-48, DY+5+tsw], //triangolo medio/finale
 	[DX-45, DY+20+tsw, DX-33, DY+20+tsw, DX-34, DY+8+tsw], //triangolo medio
@@ -753,11 +753,11 @@ crests.forEach(([x1,y1,x2,y2,x3,y3])=>{
   c.shadowOffsetY = 0;
   
   // belly
-  const bel = c.createRadialGradient(DX+5,DY+6,1,DX,DY+6,16);
+  const bel = c.createRadialGradient(DX+5,DY+7,1,DX,DY+6,16);
   bel.addColorStop(0,'#ffffffdd');
   bel.addColorStop(1,'#ffffff00');
   c.beginPath();
-  c.ellipse(DX+5,DY+6,13,12,0,0,Math.PI*2);
+  c.ellipse(DX+5,DY+6,15,12,0,0,Math.PI*2);
   c.fillStyle = bel; c.fill();
 
   // ── LEGS
@@ -1169,8 +1169,8 @@ const stars = Array.from({
 	length: 60
 }, () => ({
 	x: Math.random() * W,
-	y: Math.random() * (H * .72),
-	r: Math.random() < .7 ? 1 : 2,
+	y: Math.random() * (H * 0.7),
+	r: Math.random() < 0.75 ? 1 : 2,
 	ph: Math.random() * Math.PI * 2
 }));
 
