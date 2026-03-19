@@ -230,6 +230,54 @@ function changeColorCount(delta) {
   reset(); // riavvia il gioco con nuovi colori
 }
 
+//i gradienti sono precalcolati!!!
+const bubbleGradientCache = {};
+function getBubbleGradient(c, ci, rad) {
+  const key = ci + "_" + rad;
+  if (bubbleGradientCache[key]) return bubbleGradientCache[key];
+
+  const col = BUBBLE_COLORS[ci - 1];
+  const g = c.createRadialGradient(-rad * 0.3, -rad * 0.3, rad * 0.05, 0, 0, rad);
+  g.addColorStop(0, sh(col, 110));
+  g.addColorStop(.55, col);
+  g.addColorStop(1, sh(col, -75));
+
+  bubbleGradientCache[key] = g;
+  return g;
+}
+
+const bgCache = {};
+function getBackgroundGradient(c, sky) {
+	const key = sky.skyDark + "_" + sky.skyLight;
+
+	if (bgCache[key]) return bgCache[key];
+
+	const g = c.createLinearGradient(0, 0, 0, H);
+	g.addColorStop(0, sky.skyDark);
+	g.addColorStop(1, sky.skyLight);
+
+	bgCache[key] = g;
+	return g;
+}
+
+//puzzle bobble aveva la scacchiera!!!
+let checkerPattern;
+function createCheckerPattern(c, sky) {
+	const size = R * 3;
+	const canvas = document.createElement('canvas');
+	canvas.width = size * 2;
+	canvas.height = size * 2;
+	const ctx = canvas.getContext('2d');
+	ctx.fillStyle = sky.skyDark + '11';
+	ctx.fillRect(0, 0, size * 2, size * 2);
+	ctx.fillStyle = sky.skyLight + '11';
+	ctx.fillRect(0, 0, size, size);
+	ctx.fillRect(size, size, size, size);
+	
+	return c.createPattern(canvas, 'repeat');
+}
+
+
 // Dragon egg anchor
 const DX = W / 2;
 const DY = H - 38;
@@ -401,6 +449,8 @@ function pickSkyColor() {
 	//cambia anche il bg del body
 	const sky = SKY_COLORS[currentSkyColor];
 	document.body.style.backgroundImage = `linear-gradient(180deg, ${sky.skyDark}, ${sky.skyLight})`;
+	
+	checkerPattern = createCheckerPattern(CX, sky); //
 }
 
 // ─── Place bubble
@@ -509,6 +559,8 @@ function initGrid() {
 	
 	pickDragonColor();
 	pickSkyColor();
+	
+	checkerPattern = createCheckerPattern(CX, SKY_COLORS[currentSkyColor]);
 }
 
 //RESET
@@ -546,21 +598,24 @@ function drawBub(c, x, y, ci, rad, al) {
 	c.globalAlpha = al;
 	c.shadowColor = col;
 	c.shadowBlur = rad * 0.66;
-	const g = c.createRadialGradient(x - rad * .3, y - rad * .3, rad * .05, x, y, rad);
+	c.translate(x, y);
+	c.fillStyle = getBubbleGradient(c, ci, rad);
+	/*const g = c.createRadialGradient(x - rad * .3, y - rad * .3, rad * .05, x, y, rad);
 	g.addColorStop(0, sh(col, 110));
 	g.addColorStop(.55, col);
 	g.addColorStop(1, sh(col, -75));
-	c.beginPath();
-	c.arc(x, y, rad, 0, Math.PI * 2);
 	c.fillStyle = g;
+	*/
+	c.beginPath();
+	c.arc(0, 0, rad, 0, Math.PI * 2);//x,y
 	c.fill();
 	c.shadowBlur = 0;
 	c.beginPath();
-	c.ellipse(x - rad * .28, y - rad * .32, rad * .21, rad * .12, -.5, 0, Math.PI * 2);
+	c.ellipse(- rad * .28, - rad * .32, rad * .21, rad * .12, -.5, 0, Math.PI * 2);//x-,y-
 	c.fillStyle = 'rgba(255,255,255,.52)';
 	c.fill();
 	c.beginPath();
-	c.arc(x, y, rad, 0, Math.PI * 2);
+	c.arc(0, 0, rad, 0, Math.PI * 2);//x,y
 	c.strokeStyle = BUBBLE_COLORS[ci - 1]+'55';//'rgba(255,255,255,.22)';
 	c.lineWidth = 1.2;
 	c.stroke();
@@ -784,7 +839,8 @@ crests.forEach(([x1,y1,x2,y2,x3,y3])=>{
   hg.addColorStop(.5,DRAGON_COLORS.bodyMed);
   hg.addColorStop(1,DRAGON_COLORS.bodyDark);
   c.beginPath(); c.arc(HX,HY,20,0,Math.PI*2); c.fillStyle=hg; c.fill();
-  c.shadowBlur=0; c.shadowOffsetY=0;
+  c.shadowBlur=0; 
+  c.shadowOffsetY=0;
 
   //guance
   c.fillStyle='#ffffff33';//'rgba(255,160,160,.20)';
@@ -1118,40 +1174,41 @@ const stars = Array.from({
 	ph: Math.random() * Math.PI * 2
 }));
 
+
+
 // ─── Main draw
 function draw() {
 	const now = Date.now();
 
 	// BG gradient
-	const bg = CX.createLinearGradient(0, 0, 0, H);
-	bg.addColorStop(0, SKY_COLORS[currentSkyColor].skyDark);
-	bg.addColorStop(1, SKY_COLORS[currentSkyColor].skyLight);
-	CX.fillStyle = bg;
+	CX.fillStyle = getBackgroundGradient(CX, SKY_COLORS[currentSkyColor]);
+	CX.fillRect(0, 0, W, H);
+	CX.fillStyle = checkerPattern;
 	CX.fillRect(0, 0, W, H);
 
 	// Stars
 	stars.forEach(s => {
 		const t = .4 + .6 * Math.abs(Math.sin(now / 900 + s.ph));
-		CX.globalAlpha = t * .75;
-		CX.fillStyle = '#ffffff';
+		CX.fillStyle = `rgba(255,255,255,${t * 0.75})`;
 		CX.fillRect(s.x, s.y, s.r, s.r);
 	});
-	CX.globalAlpha = 1;
-
+	
 	// Grid bubbles
 	for (let r = 0; r < ROWS; r++)
 		for (let c = 0; c < cols(r); c++)
 			if (grid[r][c] > 0) drawBub(CX, gx(r, c), gy(r), grid[r][c], R, 1);
 
 	// Danger line
-	CX.strokeStyle = 'rgba(0,0,255,.1)';
-	CX.lineWidth = 3;
-	CX.setLineDash([6, 6]);
-	CX.beginPath();
-	CX.moveTo(0, gy(DANGER));
-	CX.lineTo(W, gy(DANGER));
-	CX.stroke();
-	CX.setLineDash([]);
+	if (drawTrajEnabled) {
+		CX.strokeStyle = 'rgba(0,0,255,.1)';
+		CX.lineWidth = 3;
+		CX.setLineDash([6, 6]);
+		CX.beginPath();
+		CX.moveTo(0, gy(DANGER));
+		CX.lineTo(W, gy(DANGER));
+		CX.stroke();
+		CX.setLineDash([]);
+	}
 
 	// Pop rings
 	pops = pops.filter(e => e.a > .01);
@@ -1193,58 +1250,24 @@ function draw() {
 	drawDragon(CX, now);//dragone
 	drawGearLauncher(CX, ang, gearRot);//mechanism
 	drawNext(CX);
+	
 	if (state === 'aiming') {
 		drawTraj(CX, ang, now);
 		const ex = MX + Math.cos(ang) * (BARREL + R / 2 - 4);
 		const ey = MY + 20 + Math.sin(ang) * (BARREL + R / 2 - 4);
 		drawBub(CX, ex, ey, cur, R / 2, 1);
-	} else if (state === 'shooting') {
-		if (ball) {
-			drawBub(CX, ball.x, ball.y, ball.ci, R, 1);
-		}
+	} 
+	
+	if (state === 'shooting' && ball) {
+		drawBub(CX, ball.x, ball.y, ball.ci, R, 1);
 	}
 
 	// ── Overlays
 	if (state === 'gameover') {
-		CX.fillStyle = 'rgba(5,5,20,.82)';
-		CX.fillRect(0, 0, W, H);
-		CX.textAlign = 'center';
-		CX.shadowColor = '#e74c3c';
-		CX.shadowBlur = 32;
-		CX.font = 'bold 52px Impact,Arial Black,sans-serif';
-		CX.fillStyle = '#e74c3c';
-		CX.fillText('GAME OVER', W / 2, H / 2 - 52);
-		CX.shadowBlur = 0;
-		CX.font = 'bold 26px Trebuchet MS';
-		CX.fillStyle = '#fff';
-		CX.fillText(`POINTS: ${score}`, W / 2, H / 2 + 2);
-		CX.font = '18px Trebuchet MS';
-		CX.fillStyle = 'rgba(255,255,255,.52)';
-		CX.fillText(`BEST: ${best}`, W / 2, H / 2 + 36);
-		if (Math.sin(now / 500) > 0) {
-			CX.font = 'bold 16px Trebuchet MS';
-			CX.fillStyle = 'rgba(255,255,255,.8)';
-			CX.fillText('— CLICK TO RESTART —', W / 2, H / 2 + 82);
-		}
+		drawEndGame('GAME OVER','#e74c3c');
 	}
 	if (state === 'win') {
-		CX.fillStyle = 'rgba(5,18,5,.82)';
-		CX.fillRect(0, 0, W, H);
-		CX.textAlign = 'center';
-		CX.shadowColor = '#2ecc71';
-		CX.shadowBlur = 32;
-		CX.font = 'bold 46px Impact,Arial Black,sans-serif';
-		CX.fillStyle = '#2ecc71';
-		CX.fillText('YOU WIN! 🎉', W / 2, H / 2 - 52);
-		CX.shadowBlur = 0;
-		CX.font = 'bold 26px Trebuchet MS';
-		CX.fillStyle = '#fff';
-		CX.fillText(`POINTS: ${score}`, W / 2, H / 2 + 2);
-		if (Math.sin(now / 500) > 0) {
-			CX.font = 'bold 16px Trebuchet MS';
-			CX.fillStyle = 'rgba(255,255,255,.8)';
-			CX.fillText('— CLICK TO RESTART —', W / 2, H / 2 + 72);
-		}
+		drawEndGame('YOU WIN! 🎉','#2ecc71');
 	}
 	
 	
@@ -1261,6 +1284,32 @@ function draw() {
 		);
 	}
 }
+
+//scritta fine gioco
+function drawEndGame(testo, colore) {
+	CX.fillStyle = 'rgba(5,5,20,.82)';
+	CX.fillRect(0, 0, W, H);
+	CX.textAlign = 'center';
+	CX.shadowColor = colore;
+	CX.shadowBlur = 32;
+	CX.font = 'bold 52px Impact,Arial Black,sans-serif';
+	CX.fillStyle = colore;
+	CX.fillText(testo, W / 2, H / 2 - 52);
+	CX.shadowBlur = 0;
+	CX.font = 'bold 26px Trebuchet MS';
+	CX.fillStyle = '#fff';
+	CX.fillText(`POINTS: ${score}`, W / 2, H / 2 + 2);
+	CX.font = '18px Trebuchet MS';
+	CX.fillStyle = 'rgba(255,255,255,.52)';
+	CX.fillText(`BEST: ${best}`, W / 2, H / 2 + 36);
+	if (Math.sin(now / 500) > 0) {
+		CX.font = 'bold 16px Trebuchet MS';
+		CX.fillStyle = 'rgba(255,255,255,.8)';
+		CX.fillText('— CLICK TO RESTART —', W / 2, H / 2 + 82);
+	}
+}
+
+
 
 // ─── Update
 function update() {
