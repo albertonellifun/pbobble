@@ -1177,7 +1177,7 @@ function drawTraj(c, a, now) {
 	const pulse = 0.5 + 0.5 * Math.sin(now / 100);//0..1, periodo 0.5s
 	const maxSteps = Math.round(80 + pulse * 160);//80..240 step
 	
-	for (let i = 0; i < 400; i++) {
+	for (let i = 0; i < maxSteps; i++) {
 		tx += vx * 10;
 		ty += vy * 10;
 		if (tx - R < 0) {
@@ -1190,13 +1190,11 @@ function drawTraj(c, a, now) {
 		}
 		if (ty < 0) break;
 		
-		//const alpha = Math.max(0, 0.4 - i * 0.002);
 		const alpha = Math.max(0, 0.4 - i * (0.4 / maxSteps));
 		if (alpha <= 0) break;
 		const aa = Math.round(alpha * 255).toString(16).padStart(2, '0');
 		
 		if (i % 2 === 0) {//effetto dash
-			//c.strokeStyle = `rgba(255,255,255,${alpha.toFixed(2)})`;
 			c.strokeStyle = BUBBLE_COLORS[cur - 1] + aa;
 			c.beginPath(); 
 			c.moveTo(prevX, prevY); 
@@ -1208,9 +1206,17 @@ function drawTraj(c, a, now) {
 		prevY = ty;
 		
 		let hit = false;
-		for (let r = 0; r < ROWS && !hit; r++)
-			for (let cc = 0; cc < cols(r) && !hit; cc++)
-				if (grid[r][cc] > 0 && Math.hypot(gx(r, cc) - tx, gy(r) - ty) < R * 2.1) hit = true;
+		const radiusSq = R * R * 4.4;
+		for (let r = 0; r < ROWS && !hit; r++) {
+			for (let cc = 0; cc < cols(r) && !hit; cc++) {
+				if (grid[r][cc] > 0) {//&& Math.hypot(gx(r, cc) - tx, gy(r) - ty) < R * 2.1) hit = true;
+					const dx = gx(r, cc) - tx;
+					const dy = gy(r) - ty;
+					if ((dx * dx + dy * dy) < radiusSq) hit = true;
+				}
+			}
+		}
+		
 		if (hit) break;
 	}
 	c.stroke();
