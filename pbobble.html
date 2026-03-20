@@ -40,7 +40,7 @@ body {
  );
  border: 4px solid rgba(255, 255, 255, 0.12);
  border-radius: 14px;
- padding: 8px 24px;
+ padding: 8px 16px;
  text-align: center;
  overflow: hidden;
  white-space: nowrap;
@@ -54,7 +54,7 @@ body {
 }
 
 .slbl {
- font-size: 14px;
+ font-size: 10px;
  letter-spacing: 3px;
  text-transform: uppercase;
  color: rgba(255, 255, 255, 0.4);
@@ -79,7 +79,7 @@ body {
 button {
  background: none;
  border: 0;
- font-size: 24px;
+ font-size: 22px;/* icons are bigger! */
  text-shadow: 1px 1px 4px rgba(0,0,0,0.6);
 }
 </style>
@@ -87,12 +87,13 @@ button {
 <body>
 	<div id="header">
 		<div class="sbox">
-			<div class="slbl">OPTIONS</div>
+			<div class="slbl">MENU</div>
 			<button onclick="changeMute()">🎵</button>
 			<button onclick="pickSkyColor()">🌈</button>
 			<button onclick="pickDragonColor()">🐲</button>
 			<button onclick="drawTrajEnabled=!drawTrajEnabled">❓</button>
 			<button onclick="rainbowMode=!rainbowMode;reset()">🎨</button>
+			<button onclick="hexMode=!hexMode">🐝</button>
 			<button onclick="reset()">♻️</button>
 			<span> </span>
 			<button onclick="changeColorCount(-1)">➖</button>
@@ -141,6 +142,7 @@ let nextAnim = null;
 
 let drawTrajEnabled = true;//traiettoria
 let rainbowMode = false;//se true, i colori sono in ordine!
+let hexMode = false;//se true, diventa un alveare!
 
 let currentSkyColor = 0;
 let SKY_COLORS = [
@@ -617,7 +619,7 @@ function reset() {
 	state = 'aiming';
 	ang = -Math.PI / 2;
 	initGrid();
-	if (audioMode !== 0) startMusic(true);
+	if (audioMode !== 0) startMusic(false);
 }
 
 // ─── Color utilities
@@ -633,12 +635,13 @@ function hr(hex) {
 
 // ─── Draw Bubble
 function drawBub(c, x, y, ci, rad, alpha) {
+	if (hexMode) return drawHex(c,x,y,ci,rad,alpha);
 	alpha = alpha ?? 1;//solo per quelle esplose
 	
 	c.save();
 	c.globalAlpha = alpha;
 	c.shadowColor = BUBBLE_COLORS[ci - 1];
-	c.shadowBlur = rad * 0.66;
+	c.shadowBlur = rad * 0.5;
 	c.translate(x, y);
 	c.fillStyle = getBubbleGradient(c, ci, rad);
 
@@ -658,6 +661,36 @@ function drawBub(c, x, y, ci, rad, alpha) {
 	c.strokeStyle = BUBBLE_COLORS[ci - 1]+'44';//'rgba(255,255,255,.22)';
 	c.lineWidth = 1.2;
 	c.stroke();
+	c.restore();
+}
+
+function drawHex(c, x, y, ci, rad, alpha) {
+	alpha = alpha ?? 1;//solo per quelle esplose
+	
+	c.save();
+	c.globalAlpha = alpha;
+	c.shadowColor = BUBBLE_COLORS[ci - 1];
+	c.shadowBlur = rad * 0.25;
+	c.translate(x, y);
+	c.fillStyle = getBubbleGradient(c, ci, rad);
+
+	//riflesso luce interno
+	c.beginPath();
+	for (let i = 0; i < 6; i++) {
+		let angle = i * Math.PI / 3 + Math.PI / 6;//ruotato di 30'
+		let px = rad * Math.cos(angle) * 1.06;//un po piu grosso
+		let py = rad * Math.sin(angle) * 1.06;//un po piu grosso
+		if (i === 0) c.moveTo(px, py);
+		else c.lineTo(px, py);
+	}
+	c.closePath();
+	//contorno
+	c.fill();
+	c.strokeStyle = BUBBLE_COLORS[ci - 1];//'rgba(255,255,255,.22)';
+	c.lineWidth = 1.2;
+	c.stroke();
+	c.shadowBlur = 0;
+	
 	c.restore();
 }
 
@@ -986,49 +1019,52 @@ function drawGearLauncher(c, ang, gr) {
 	c.shadowOffsetY = 0;
 	
 	//barrel body
-	const barG = c.createLinearGradient(0, -9, 0, 9);
+	const barG = c.createLinearGradient(0, -18, 0, 18);
 	barG.addColorStop(0, '#607d8b');
 	barG.addColorStop(.3, '#78909c');
 	barG.addColorStop(.6, '#455a64');
 	barG.addColorStop(1, '#1e3040');
 	c.fillStyle = barG;
 	c.beginPath();
-	c.roundRect(6, -7, BARREL - 2, 14, 7);
+	c.roundRect(6, -14, BARREL - 2, 28, 7);
 	c.fill();
 	
 	//barrel highlight
 	c.fillStyle = 'rgba(255,255,255,.14)';
 	c.beginPath();
-	c.roundRect(9, -5.5, BARREL - 10, 5, 3);
+	c.roundRect(9, -11, BARREL - 10, 10, 3);
 	c.fill();
 	//brass rings
-	[BARREL - 10, BARREL - 20].forEach(bp => {
-		const rg = c.createLinearGradient(0, -9, 0, 9);
-		rg.addColorStop(0, '#e8c040');
-		rg.addColorStop(.5, '#b8860b');
-		rg.addColorStop(1, '#7a5004');
+	[BARREL - 18, BARREL - 28].forEach(bp => {
+		const rg = c.createLinearGradient(0, -18, 0, 18);
+		//rg.addColorStop(0, '#999999');
+		//rg.addColorStop(0.5, '#666666');
+		//rg.addColorStop(1, '#000000');
+		rg.addColorStop(0, '#eebb44');
+		rg.addColorStop(.5, '#bb8811');
+		rg.addColorStop(1, '#775500');
 		c.fillStyle = rg;
-		c.fillRect(bp - 3, -8.5, 6, 17);
+		c.fillRect(bp - 3, -17, 6, 34);
 		c.strokeStyle = 'rgba(0,0,0,.3)';
 		c.lineWidth = .8;
-		c.strokeRect(bp - 3, -8.5, 6, 17);
+		c.strokeRect(bp - 3, -17, 6, 34);
 	});
 	
-	//bocca del cannone
+	//bordo bocca
 	c.beginPath();
-	c.arc(BARREL + 4, 0, 9, 0, Math.PI * 2);
+	c.ellipse(BARREL, 0, 2, 12, 0, 0, Math.PI * 2);
 	const mg = c.createRadialGradient(BARREL + 1, -2, 1, BARREL + 4, 0, 9);
-	mg.addColorStop(0, '#546e7a');
-	mg.addColorStop(.5, '#263238');
-	mg.addColorStop(1, '#0d1a22');
+	mg.addColorStop(0, '#666666');
+	mg.addColorStop(1, '#000000');
 	c.fillStyle = mg;
 	c.fill();
-	c.strokeStyle = '#b8860b';
-	c.lineWidth = 2;
+	c.strokeStyle = '#666666';
+	c.lineWidth = 4;
 	c.stroke();
+	//bocca del cannone
 	c.beginPath();
-	c.arc(BARREL + 4, 0, 5.5, 0, Math.PI * 2);
-	c.fillStyle = '#050e14';
+	c.ellipse(BARREL, 0, 2, 12, 0, 0, Math.PI * 2);
+	c.fillStyle = state === 'aiming' ? BUBBLE_COLORS[cur - 1]+'99' : '#666666';
 	c.fill();
 	
 	c.restore();
@@ -1039,17 +1075,21 @@ function drawGearLauncher(c, ang, gr) {
 	// center cap
 	c.beginPath();
 	c.arc(MX, MY + 20, 16, 0, Math.PI * 2);
-	const cg = c.createRadialGradient(MX + 5, MY + 5, 1, MX + 10, MY + 10, 16);
+	const cg = c.createRadialGradient(MX - 5, MY + 5, 1, MX - 5, MY + 16, 16);
 	cg.addColorStop(0, '#666666');
-	cg.addColorStop(1, '#000000');
+	cg.addColorStop(1, '#333333');
 	c.fillStyle = cg;
 	c.fill();
-	c.strokeStyle = '#37474f';
-	c.lineWidth = 1.2;
+	c.strokeStyle = '#334455';
+	c.lineWidth = 1.5;
 	c.stroke();
 }
 
-function drawGear(c, cx, cy, rIn, rOut, n, rot, spokes, fillCol = '#546e7a', rimCol = '#37474f', hubCol = '#b8860b') {
+function drawGear(c, cx, cy, rIn, rOut, n, rot, spokes) {
+	const fillCol = '#556677';//riempimento
+	const rimCol = '#334455';//bordo
+	const hubCol = '#bb8811';//perno
+	
 	c.save();
 	c.translate(cx, cy);
 	c.rotate(rot);
@@ -1092,8 +1132,9 @@ function drawGear(c, cx, cy, rIn, rOut, n, rot, spokes, fillCol = '#546e7a', rim
 	c.beginPath();
 	c.arc(0, 0, rIn * .58, 0, Math.PI * 2);
 	c.strokeStyle = rimCol;
-	c.lineWidth = 1.1;
+	c.lineWidth = 3.1;
 	c.stroke();
+	
 	// hub
 	c.beginPath();
 	c.arc(0, 0, rIn * .27, 0, Math.PI * 2);
@@ -1120,8 +1161,6 @@ function drawTraj(c, a, now) {
 	if (!drawTrajEnabled) return;
 	const pivX = DX;
 	const pivY = DY - 17;
-	//let tx = pivX + Math.cos(a) * 48;
-	//let ty = pivY + Math.sin(a) * 48;
 	let tx = MX + Math.cos(a) * (BARREL + 4);
 	let ty = MY + 20 + Math.sin(a) * (BARREL + 4);
 	let vx = Math.cos(a);
@@ -1276,9 +1315,11 @@ function draw() {
 	
 	if (state === 'aiming') {
 		drawTraj(CX, ang, now);
-		const ex = MX + Math.cos(ang) * (BARREL + R / 2 - 4);
-		const ey = MY + 20 + Math.sin(ang) * (BARREL + R / 2 - 4);
-		drawBub(CX, ex, ey, cur, R / 2, 1);
+		//const ex = MX + Math.cos(ang) * (BARREL + R / 2 - 4);
+		//const ey = MY + 20 + Math.sin(ang) * (BARREL + R / 2 - 4);
+		//drawBub(CX, ex, ey, cur, R * 0.6, 1);//punta cannone
+		//drawBub(CX, DX, DY, cur, R * 0.6, 1);//partenza effettiva
+		drawBub(CX, DX, DY + 14, cur, R * 0.6, 0.8);//buco
 	} 
 	
 	if (state === 'shooting' && ball) {
@@ -1396,8 +1437,6 @@ function getAng(e) {
 
 function shoot() {
 	if (state !== 'aiming') return;
-	//const pivX = DX;
-	//const pivY = DY - 17;
 	const pivX = MX;
 	const pivY = MY + 20;
 	ball = {
