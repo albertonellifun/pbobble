@@ -4,3 +4,5 @@ Puzzle Bobble clone - the classic 1980s game in HTML, JavaScript, and CSS
 
 Screenshots:
 [![Puzzle Bobble](https://albertonellifun.github.io/pbobble/screenshot1.jpg)](https://albertonellifun.github.io/pbobble/screenshot1.jpg)
+
+[![Puzzle Bobble](https://albertonellifun.github.io/pbobble/screenshot2.jpg)](https://albertonellifun.github.io/pbobble/screenshot2.jpg)
